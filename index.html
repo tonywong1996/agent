@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>计算机</title>
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: #e8e8e8;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+.calculator {
+    background: #333;
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    width: 320px;
+}
+.display {
+    background: #222;
+    color: #fff;
+    text-align: right;
+    padding: 15px 10px;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    font-size: 2rem;
+    height: 70px;
+    line-height: 70px;
+    overflow: hidden;
+    white-space: nowrap;
+}
+.buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+.btn {
+    background: #4b4b4b;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 20px 0;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    user-select: none;
+}
+.btn:hover {
+    background: #5e5e5e;
+}
+.btn:active {
+    background: #3a3a3a;
+}
+.btn.operator {
+    background: #ff9f0a;
+    color: #fff;
+}
+.btn.operator:hover {
+    background: #ffb33d;
+}
+.btn.function {
+    background: #a5a5a5;
+    color: #000;
+}
+.btn.function:hover {
+    background: #c0c0c0;
+}
+.btn.equals {
+    background: #ff9f0a;
+}
+.btn.zero {
+    grid-column: span 2;
+}
+</style>
+</head>
+<body>
+<div class="calculator">
+    <div class="display" id="display">0</div>
+    <div class="buttons">
+        <button class="btn function" onclick="clearDisplay()">C</button>
+        <button class="btn function" onclick="backspace()">⌫</button>
+        <button class="btn function" onclick="append('%')">%</button>
+        <button class="btn operator" onclick="append('÷')">÷</button>
+        <button class="btn" onclick="append('7')">7</button>
+        <button class="btn" onclick="append('8')">8</button>
+        <button class="btn" onclick="append('9')">9</button>
+        <button class="btn operator" onclick="append('×')">×</button>
+        <button class="btn" onclick="append('4')">4</button>
+        <button class="btn" onclick="append('5')">5</button>
+        <button class="btn" onclick="append('6')">6</button>
+        <button class="btn operator" onclick="append('-')">−</button>
+        <button class="btn" onclick="append('1')">1</button>
+        <button class="btn" onclick="append('2')">2</button>
+        <button class="btn" onclick="append('3')">3</button>
+        <button class="btn operator" onclick="append('+')">+</button>
+        <button class="btn zero" onclick="append('0')">0</button>
+        <button class="btn" onclick="append('.')">.</button>
+        <button class="btn equals" onclick="calculate()">=</button>
+    </div>
+</div>
+<script>
+let display = document.getElementById('display');
+let expression = '';
+let justEvaluated = false;
+
+function updateDisplay(value) {
+    display.textContent = value || '0';
+}
+
+function append(char) {
+    if (justEvaluated) {
+        const operators = ['+', '-', '×', '÷', '%'];
+        if (operators.includes(char)) {
+            // continue with result
+            expression += char;
+            justEvaluated = false;
+        } else if (char === '.') {
+            expression = '0.';
+            justEvaluated = false;
+        } else {
+            expression = char;
+            justEvaluated = false;
+        }
+    } else {
+        expression += char;
+    }
+    updateDisplay(expression);
+}
+
+function clearDisplay() {
+    expression = '';
+    justEvaluated = false;
+    updateDisplay('');
+}
+
+function backspace() {
+    expression = expression.slice(0, -1);
+    updateDisplay(expression);
+}
+
+function calculate() {
+    try {
+        // replace visual operators with JavaScript equivalents
+        let sanitized = expression.replace(/÷/g, '/').replace(/×/g, '*');
+        // use strict to prevent global pollution
+        let result = Function('"use strict"; return (' + sanitized + ')')();
+        if (!isFinite(result)) {
+            throw new Error('Infinity');
+        }
+        expression = result.toString();
+        updateDisplay(expression);
+        justEvaluated = true;
+    } catch(e) {
+        display.textContent = '错误';
+        expression = '';
+        justEvaluated = false;
+    }
+}
+</script>
+</body>
+</html>
