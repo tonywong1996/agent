@@ -1,4 +1,4 @@
-name: MiniMax Auto Coder
+name: MiniMax International Auto Coder
 
 on:
   issues:
@@ -29,8 +29,10 @@ jobs:
 
       - name: Run MiniMax Agent
         env:
-          # 【核心修改 1】Aider 底层依赖 LiteLLM，LiteLLM 识别 MiniMax 必须使用 MINIMAX_API_KEY 这个变量名
-          MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
+          # 1. 换回标准变量名，直接通过自定义 Base URL 强行接入国际版
+          OPENAI_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
+          # 2. 【核心修改】强行指定为 MiniMax 国际版的官方 OpenAI 兼容接口地址
+          OPENAI_API_BASE: https://api.minimaxi.com/v1
           ISSUE_TITLE: ${{ github.event.issue.title }}
           ISSUE_BODY: ${{ github.event.issue.body }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -41,8 +43,8 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          # 【核心修改 2】模型前缀必须严格写成 minimax/ 后面接模型代号，并加上跳过警告的参数
-          aider --model minimax/MiniMax-M2.7 --message "根据需求编写或修改代码。标题：$ISSUE_TITLE。描述：$ISSUE_BODY" --no-show-model-warnings --yes
+          # 3. 在国际版接口下，模型名字可以直接写成它的标准代号
+          aider --model openai/MiniMax-M2.7 --message "根据需求编写或修改代码。标题：$ISSUE_TITLE。描述：$ISSUE_BODY" --no-show-model-warnings --yes
           
           git push origin $BRANCH_NAME
           
