@@ -1,4 +1,4 @@
-name: MiniMax International Auto Coder
+name: MiniMax Free Quota Coder
 
 on:
   issues:
@@ -29,9 +29,8 @@ jobs:
 
       - name: Run MiniMax Agent
         env:
-          # 1. 换回标准变量名，直接通过自定义 Base URL 强行接入国际版
+          # 使用你的 MiniMax 国际版新 Key
           OPENAI_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
-          # 2. 【核心修改】强行指定为 MiniMax 国际版的官方 OpenAI 兼容接口地址
           OPENAI_API_BASE: https://api.minimaxi.com/v1
           ISSUE_TITLE: ${{ github.event.issue.title }}
           ISSUE_BODY: ${{ github.event.issue.body }}
@@ -43,9 +42,10 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          # 3. 在国际版接口下，模型名字可以直接写成它的标准代号
-          aider --model openai/MiniMax-M2.7 --message "根据需求编写或修改代码。标题：$ISSUE_TITLE。描述：$ISSUE_BODY" --no-show-model-warnings --yes
+          # 【核心修改】这里不写具体的高级型号，改写标准通用的 text-davinci-003 或 gpt-3.5-turbo 
+          # MiniMax 国际版接口会自动把这个通用名字映射到它们最基础、允许使用免费额度的基础模型上。
+          aider --model openai/gpt-3.5-turbo --message "根据需求编写或修改代码。标题：$ISSUE_TITLE。描述：$ISSUE_BODY" --no-show-model-warnings --yes
           
           git push origin $BRANCH_NAME
           
-          gh pr create --title "AI(MiniMax): ${{ github.event.issue.title }}" --body "这是 MiniMax 自动为你生成的代码，请审核。" --base main --head $BRANCH_NAME
+          gh pr create --title "AI(MiniMax-Free): ${{ github.event.issue.title }}" --body "这是用 MiniMax 免费额度自动生成的代码。" --base main --head $BRANCH_NAME
