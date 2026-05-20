@@ -1,0 +1,50 @@
+name: MiniMax Auto Coder
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  auto-code:
+    if: github.event.label.name == 'ai-write'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Aider
+        run: pip install aider-chat
+
+      - name: Run MiniMax Agent
+        env:
+          # 調用剛剛存放的 MiniMax 金鑰
+          OPENAI_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
+          # 填入 MiniMax 官方的 OpenAI 兼容標準網址
+          OPENAI_API_BASE: https://api.minimax.io/v1
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          BRANCH_NAME="ai-feature-${{ github.event.issue.number }}"
+          git checkout -b $BRANCH_NAME
+          
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # 喚醒 AI Agent 工具，並指定使用 MiniMax 旗艦模型 MiniMax-M2.7
+          aider --model openai/MiniMax-M2.7 --message "根據需求編寫或修改代碼。標題：$ISSUE_TITLE。描述：$ISSUE_BODY" --yes
+          
+          git push origin $BRANCH_NAME
+          
+          gh pr create --title "AI(MiniMax): ${{ github.event.issue.title }}" --body "這是 MiniMax 自動為您生成的代碼分支，請審核。" --base main --head $BRANCH_NAME
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
